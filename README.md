@@ -38,6 +38,7 @@ create table public.ratings (
   rater      text     not null,
   ratee      text     not null,
   stars      smallint not null check (stars between 1 and 5),
+  comment    text     check (comment is null or char_length(comment) <= 500),
   updated_at timestamptz not null default now(),
   primary key (rater, ratee)
 );
@@ -61,6 +62,18 @@ To clear it, use the SQL editor:
 delete from public.ratings;
 ```
 
+## Migrations
+
+Applied to an existing table in this order:
+
+```sql
+-- adds the optional comment that accompanies a rating
+alter table public.ratings
+  add column comment text check (comment is null or char_length(comment) <= 500);
+```
+
+Policies did not need changing - RLS is per row, not per column.
+
 ## Verified behaviour
 
 - read returns the shared table to both phones
@@ -68,3 +81,6 @@ delete from public.ratings;
 - a `rater` outside the allowlist is rejected by RLS (401)
 - `stars` outside 1-5 is rejected by the check constraint (400)
 - delete through the public key silently affects no rows
+- a comment round-trips and is shown under the stars it belongs to
+- a blank comment is stored as null rather than an empty string
+- comment text is escaped on render, so markup in a comment stays inert
