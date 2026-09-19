@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RateMe</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #e2e5ea;
+    --text: #1a1d23;
+    --muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-text: #ffffff;
+    --star-on: #f5a623;
+    --star-off: #d3d7de;
+    --danger: #d64545;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a;
+      --surface: #1c1f25;
+      --border: #2c313a;
+      --text: #e9ecf1;
+      --muted: #9aa3b2;
+      --accent: #7c74f5;
+      --accent-text: #0f1115;
+      --star-off: #3a404b;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a;
+    --surface: #1c1f25;
+    --border: #2c313a;
+    --text: #e9ecf1;
+    --muted: #9aa3b2;
+    --accent: #7c74f5;
+    --accent-text: #0f1115;
+    --star-off: #3a404b;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 16px;
+  }
+  .header-inner {
+    max-width: 640px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 24px; font-weight: 700; letter-spacing: -.02em;
+  }
+  h1 span { color: var(--accent); }
+
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 17px; font-weight: 650; }
+  .card p.sub { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 10px 12px; margin-bottom: 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font-size: 15px;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    border-radius: 8px; border: 1px solid transparent;
+    padding: 10px 16px;
+    background: var(--accent); color: var(--accent-text);
+  }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--muted); border-color: var(--border); padding: 7px 12px; font-size: 13px; }
+  button.ghost:hover { color: var(--text); }
+  button.block { width: 100%; }
+
+  .stars { display: flex; gap: 6px; margin: 4px 0 18px; }
+  .star {
+    background: none; border: none; padding: 2px; cursor: pointer;
+    font-size: 36px; line-height: 1; color: var(--star-off);
+    transition: transform .08s ease, color .12s ease;
+  }
+  .star.on { color: var(--star-on); }
+  .star:hover { transform: scale(1.12); }
+  .star:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .error { color: var(--danger); font-size: 13.5px; margin: -6px 0 12px; min-height: 18px; }
+  .ok { color: var(--accent); font-size: 13.5px; margin-top: 12px; min-height: 18px; }
+
+  .summary { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .avg { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+  .avg-stars { font-size: 20px; color: var(--star-on); letter-spacing: 2px; }
+  .count { color: var(--muted); font-size: 13.5px; }
+
+  ul.history { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--border); }
+  ul.history li {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  ul.history .h-stars { color: var(--star-on); letter-spacing: 2px; }
+  ul.history .h-date { color: var(--muted); font-size: 12.5px; }
+
+  .empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+  .who { font-size: 13.5px; color: var(--muted); }
+  .who b { color: var(--text); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Rate<span>Me</span></h1>
+    <div id="session-box" class="hidden">
+      <span class="who">Signed in as <b id="who-name"></b></span>
+      <button class="ghost" id="logout-btn" type="button">Log out</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Login -->
+  <section id="login-view" class="card">
+    <h2>Log in</h2>
+    <p class="sub">Enter your username and password to rate and view your ratings.</p>
+    <form id="login-form" autocomplete="off">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocapitalize="none" autocorrect="off" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      <div class="error" id="login-error"></div>
+      <button class="block" type="submit">Log in</button>
+    </form>
+  </section>
+
+  <!-- Rate the other user -->
+  <section id="rate-view" class="card hidden">
+    <h2>Rate <span id="target-name"></span></h2>
+    <p class="sub">Pick 1&ndash;5 stars and submit. You can update your rating any time.</p>
+    <div class="stars" id="star-picker" role="radiogroup" aria-label="Rating in stars"></div>
+    <button id="submit-btn" type="button" disabled>Submit rating</button>
+    <div class="ok" id="submit-msg"></div>
+  </section>
+
+  <!-- Ratings received -->
+  <section id="received-view" class="card hidden">
+    <h2>Your ratings</h2>
+    <p class="sub">What <span id="rater-name"></span> has given you.</p>
+    <div id="received-body"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var USERS = {
+    kobi:  { password: "123456",  display: "Kobi",  partner: "sivan" },
+    sivan: { password: "1234567", display: "Sivan", partner: "kobi"  }
+  };
+
+  var STORE_KEY = "rateme.ratings.v1";
+  var SESSION_KEY = "rateme.session.v1";
+
+  var el = {
+    loginView:    document.getElementById("login-view"),
+    loginForm:    document.getElementById("login-form"),
+    username:     document.getElementById("username"),
+    password:     document.getElementById("password"),
+    loginError:   document.getElementById("login-error"),
+    sessionBox:   document.getElementById("session-box"),
+    whoName:      document.getElementById("who-name"),
+    logoutBtn:    document.getElementById("logout-btn"),
+    rateView:     document.getElementById("rate-view"),
+    targetName:   document.getElementById("target-name"),
+    starPicker:   document.getElementById("star-picker"),
+    submitBtn:    document.getElementById("submit-btn"),
+    submitMsg:    document.getElementById("submit-msg"),
+    receivedView: document.getElementById("received-view"),
+    raterName:    document.getElementById("rater-name"),
+    receivedBody: document.getElementById("received-body")
+  };
+
+  var currentUser = null;
+  var selected = 0;
+
+  /* ---------- storage (guarded: private mode / blocked site data) ---------- */
+
+  function loadRatings() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRatings(list) {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function loadSession() {
+    try { return sessionStorage.getItem(SESSION_KEY); } catch (e) { return null; }
+  }
+
+  function saveSession(id) {
+    try {
+      if (id) sessionStorage.setItem(SESSION_KEY, id);
+      else sessionStorage.removeItem(SESSION_KEY);
+    } catch (e) { /* login simply won't survive a reload */ }
+  }
+
+  /* ---------- rating data ---------- */
+
+  function ratingsFor(toId) {
+    return loadRatings()
+      .filter(function (r) { return r.to === toId; })
+      .sort(function (a, b) { return b.ts - a.ts; });
+  }
+
+  function myRatingOf(fromId, toId) {
+    var mine = loadRatings().filter(function (r) { return r.from === fromId && r.to === toId; });
+    if (!mine.length) return null;
+    return mine.sort(function (a, b) { return b.ts - a.ts; })[0];
+  }
+
+  function submitRating(fromId, toId, stars) {
+    var list = loadRatings().filter(function (r) {
+      return !(r.from === fromId && r.to === toId);
+    });
+    list.push({ from: fromId, to: toId, stars: stars, ts: Date.now() });
+    return saveRatings(list);
+  }
+
+  /* ---------- rendering ---------- */
+
+  function buildStarPicker() {
+    el.starPicker.innerHTML = "";
+    for (var i = 1; i <= 5; i++) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "star";
+      b.dataset.value = String(i);
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", "false");
+      b.setAttribute("aria-label", i + (i === 1 ? " star" : " stars"));
+      b.textContent = "★";
+      b.addEventListener("click", onStarClick);
+      el.starPicker.appendChild(b);
+    }
+  }
+
+  function onStarClick(e) {
+    setSelected(Number(e.currentTarget.dataset.value));
+    el.submitMsg.textContent = "";
+  }
+
+  function setSelected(value) {
+    selected = value;
+    var stars = el.starPicker.querySelectorAll(".star");
+    for (var i = 0; i < stars.length; i++) {
+      var on = Number(stars[i].dataset.value) <= value;
+      stars[i].classList.toggle("on", on);
+      stars[i].setAttribute("aria-checked", on && Number(stars[i].dataset.value) === value ? "true" : "false");
+    }
+    el.submitBtn.disabled = value < 1;
+  }
+
+  function starString(n) {
+    return "★".repeat(n) + "☆".repeat(5 - n);
+  }
+
+  function formatDate(ts) {
+    var d = new Date(ts);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) +
+           ", " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderReceived(user) {
+    var list = ratingsFor(user.id);
+    if (!list.length) {
+      el.receivedBody.innerHTML = '<div class="empty">No ratings yet. Once ' +
+        escapeHtml(USERS[user.partner].display) + ' submits one, it shows up here.</div>';
+      return;
+    }
+
+    var sum = list.reduce(function (acc, r) { return acc + r.stars; }, 0);
+    var avg = sum / list.length;
+    var rounded = Math.round(avg);
+
+    var html = '' +
+      '<div class="summary">' +
+        '<span class="avg">' + avg.toFixed(1) + '</span>' +
+        '<span class="avg-stars">' + starString(rounded) + '</span>' +
+      '</div>' +
+      '<div class="count">' + list.length + (list.length === 1 ? ' rating' : ' ratings') + ' received</div>' +
+      '<ul class="history">';
+
+    list.forEach(function (r) {
+      var fromName = USERS[r.from] ? USERS[r.from].display : r.from;
+      html += '<li>' +
+        '<span><span class="h-stars">' + starString(r.stars) + '</span> ' +
+          '<span class="h-date">from ' + escapeHtml(fromName) + '</span></span>' +
+        '<span class="h-date">' + escapeHtml(formatDate(r.ts)) + '</span>' +
+      '</li>';
+    });
+
+    html += '</ul>';
+    el.receivedBody.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------- views ---------- */
+
+  function showLoggedIn(userId) {
+    var user = USERS[userId];
+    currentUser = { id: userId, display: user.display, partner: user.partner };
+
+    el.whoName.textContent = user.display;
+    el.sessionBox.classList.remove("hidden");
+    el.loginView.classList.add("hidden");
+    el.rateView.classList.remove("hidden");
+    el.receivedView.classList.remove("hidden");
+
+    el.targetName.textContent = USERS[user.partner].display;
+    el.raterName.textContent = USERS[user.partner].display;
+
+    buildStarPicker();
+    var existing = myRatingOf(userId, user.partner);
+    if (existing) {
+      setSelected(existing.stars);
+      el.submitMsg.textContent = "Your current rating: " + existing.stars +
+        (existing.stars === 1 ? " star" : " stars") + ".";
+    } else {
+      setSelected(0);
+      el.submitMsg.textContent = "";
+    }
+
+    renderReceived(currentUser);
+  }
+
+  function showLoggedOut() {
+    currentUser = null;
+    selected = 0;
+    el.sessionBox.classList.add("hidden");
+    el.loginView.classList.remove("hidden");
+    el.rateView.classList.add("hidden");
+    el.receivedView.classList.add("hidden");
+    el.loginForm.reset();
+    el.loginError.textContent = "";
+    el.submitMsg.textContent = "";
+  }
+
+  /* ---------- events ---------- */
+
+  el.loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var id = el.username.value.trim().toLowerCase();
+    var pw = el.password.value;
+    var user = USERS[id];
+
+    if (!user || user.password !== pw) {
+      el.loginError.textContent = "Wrong username or password.";
+      el.password.value = "";
+      el.password.focus();
+      return;
+    }
+    el.loginError.textContent = "";
+    saveSession(id);
+    showLoggedIn(id);
+  });
+
+  el.logoutBtn.addEventListener("click", function () {
+    saveSession(null);
+    showLoggedOut();
+  });
+
+  el.submitBtn.addEventListener("click", function () {
+    if (!currentUser || selected < 1) return;
+    var ok = submitRating(currentUser.id, currentUser.partner, selected);
+    el.submitMsg.textContent = ok
+      ? "Saved — you rated " + USERS[currentUser.partner].display + " " + selected +
+        (selected === 1 ? " star." : " stars.")
+      : "Could not save: this browser is blocking local storage.";
+    renderReceived(currentUser);
+  });
+
+  /* Reflect ratings submitted in another tab of the same browser. */
+  window.addEventListener("storage", function (e) {
+    if (e.key === STORE_KEY && currentUser) renderReceived(currentUser);
+  });
+
+  /* ---------- boot ---------- */
+
+  var restored = loadSession();
+  if (restored && USERS[restored]) showLoggedIn(restored);
+  else showLoggedOut();
+})();
+</script>
+
+</body>
+</html>
