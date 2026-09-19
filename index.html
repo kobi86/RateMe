@@ -314,7 +314,12 @@
           throw new Error("Supabase " + res.status + ": " + (t || res.statusText));
         });
       }
-      return res.status === 204 ? null : res.json();
+      /* An upsert sent with return=minimal answers 200/201 and an empty
+         body, so parse the text rather than assuming JSON is there. */
+      return res.text().then(function (t) {
+        if (!t) return null;
+        try { return JSON.parse(t); } catch (e) { return null; }
+      });
     });
   }
 
