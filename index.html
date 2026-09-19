@@ -237,7 +237,8 @@
              enterkeyhint="next" required>
       <label for="password">Password</label>
       <input type="password" id="password" name="password"
-             autocomplete="current-password" enterkeyhint="go" required>
+             autocomplete="current-password" enterkeyhint="go"
+             inputmode="numeric" pattern="[0-9]*" required>
       <div class="error" id="login-error" role="alert"></div>
       <button class="block" type="submit">Log in</button>
     </form>
@@ -273,8 +274,8 @@
   "use strict";
 
   var USERS = {
-    kobi:  { password: "123456!",  display: "Kobi",  partner: "sivan" },
-    sivan: { password: "1234567!", display: "Sivan", partner: "kobi"  }
+    kobi:  { password: "1234560",  display: "Kobi",  partner: "sivan" },
+    sivan: { password: "12345670", display: "Sivan", partner: "kobi"  }
   };
 
   /* ====================================================================

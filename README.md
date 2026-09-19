@@ -9,8 +9,8 @@ Live: https://kobi86.github.io/RateMe/
 
 | Username | Password |
 |----------|----------|
-| Kobi     | 123456!  |
-| Sivan    | 1234567! |
+| Kobi     | 1234560  |
+| Sivan    | 12345670 |
 
 These are in the page source and the repo is public. Do not reuse them anywhere.
 
