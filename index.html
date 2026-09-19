@@ -379,7 +379,7 @@
   }
 
   function fetchRatings() {
-    return api("ratings?select=rater,ratee,stars,updated_at").then(function (rows) {
+    return api("ratings?select=rater,ratee,stars,comment,updated_at").then(function (rows) {
       var list = normalise(rows);
       writeCache(list);
       return list;
